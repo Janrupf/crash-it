@@ -135,6 +135,26 @@ void CiWriteLastErrorAndExit(HANDLE console, PCWSTR message) {
 }
 
 void CiExit(UINT exit_code) {
+    DWORD proc_id;
+    DWORD console_process_count = GetConsoleProcessList(&proc_id, 1);
+    if (console_process_count < 2) {
+        CiOutputToConsole(GetStdHandle(STD_OUTPUT_HANDLE), L"Press any key to continue...");
+
+        HANDLE console_in = GetStdHandle(STD_INPUT_HANDLE);
+        INPUT_RECORD record;
+        DWORD event_count;
+
+        while(1) {
+            if (ReadConsoleInputW(console_in, &record, 1, &event_count)) {
+                if (record.EventType == KEY_EVENT && record.Event.KeyEvent.bKeyDown) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
     ExitProcess(exit_code);
 }
 

@@ -113,5 +113,6 @@ int main() {
         CiWriteLastErrorAndExit(console_err, L"Failed to crash process: ");
     }
 
+    CiExit(0);
     return 0;
 }
