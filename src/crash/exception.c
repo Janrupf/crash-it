@@ -17,7 +17,7 @@ BOOL CiCrashWithException(
     };
 
     CI_REMOTE_CALL call;
-    call.argument_count = 2;
+    call.argument_count = 4;
     call.arguments = arguments;
     call.target_type = CI_REMOTE_CALL_TARGET_KERNEL32;
     call.target.export = "RaiseException";

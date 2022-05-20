@@ -1,5 +1,6 @@
 #include "crash-it/crash/illegal_instruction.h"
 
+#include "crash-it/remote.h"
 #include "crash-it/util.h"
 
 const BYTE SHELLCODE[] = {
@@ -12,73 +13,17 @@ BOOL CiCrashWithIllegalInstruction(
         HANDLE console_err,
         HANDLE process
 ) {
-    LPVOID allocation = VirtualAllocEx(
+    HANDLE thread = CiSpawnShellcode(
             process,
-            NULL,
-            1024,
-            MEM_COMMIT,
-            PAGE_EXECUTE_READWRITE
-    );
-
-    if (allocation == NULL) {
-        return FALSE;
-    }
-
-    if (!WriteProcessMemory(
-            process,
-            allocation,
             SHELLCODE,
-            2,
-            NULL
-    )) {
-        DWORD error = GetLastError();
-
-        VirtualFreeEx(
-                process,
-                allocation,
-                0,
-                MEM_RELEASE
-        );
-
-        SetLastError(error);
-        return FALSE;
-    }
-
-    CiOutputToConsole(console_out, L"Shellcode injected!\n");
-
-    HANDLE thread = CreateRemoteThread(
-            process,
-            NULL,
-            0,
-            allocation,
-            NULL,
-            0,
-            NULL
+            2
     );
     if(!thread) {
-        DWORD error = GetLastError();
-
-        VirtualFreeEx(
-                process,
-                allocation,
-                0,
-                MEM_RELEASE
-        );
-
-        SetLastError(error);
         return FALSE;
     }
 
     CiOutputToConsole(console_out, L"Thread created, waiting for its exit...\n");
     WaitForSingleObject(thread, INFINITE);
-
-    VirtualFreeEx(
-            process,
-            allocation,
-            0,
-            MEM_RELEASE
-    );
-
     CiOutputToConsole(console_out, L"The remote thread exited, the process should have crashed!\n");
     CiOutputToConsole(console_out, L"If the process is still running, it might handle faults.");
 
